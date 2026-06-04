@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anton · Командный центр</title>
+<style>
+  :root{
+    --bg:#15151c; --bg2:#1d1d27; --card:#23232f; --card-h:#2c2c3b;
+    --line:#33333f; --txt:#ececf2; --muted:#9a9ab0; --accent:#7c6cff;
+    --gold:#e0b341; --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 70% -10%,#22223040,transparent),var(--bg);
+    color:var(--txt);min-height:100vh;padding:32px 28px 80px;
+  }
+  .wrap{max-width:1240px;margin:0 auto}
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+  .hello h1{font-size:30px;font-weight:700;letter-spacing:-.5px}
+  .hello p{color:var(--muted);margin-top:4px;font-size:14px}
+  .clock{font-size:26px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+  .search{margin:0 0 30px;position:relative}
+  .search input{
+    width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);
+    padding:14px 18px 14px 46px;border-radius:14px;font-size:15px;outline:none;
+  }
+  .search input:focus{border-color:var(--accent)}
+  .search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);opacity:.5}
+
+  .section{margin-bottom:34px}
+  .section h2{font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);
+    margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .section h2 .add{margin-left:auto;cursor:pointer;color:var(--accent);font-size:12px;
+    border:1px solid var(--line);padding:5px 12px;border-radius:20px;text-transform:none;letter-spacing:0;
+    background:var(--bg2);transition:.15s}
+  .section h2 .add:hover{background:var(--card-h);border-color:var(--accent)}
+
+  .grid{display:grid;gap:14px}
+  .grid.hero{grid-template-columns:repeat(2,1fr)}
+  .grid.normal{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+
+  .tile{
+    position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;text-decoration:none;color:var(--txt);display:flex;flex-direction:column;gap:10px;
+    transition:.15s;cursor:pointer;min-height:96px;
+  }
+  .tile:hover{background:var(--card-h);transform:translateY(-2px);border-color:#44445a}
+  .tile .ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:700;flex-shrink:0}
+  .tile .ttl{font-size:15px;font-weight:600;line-height:1.25}
+  .tile .sub{font-size:12px;color:var(--muted);line-height:1.3}
+  .tile .tools{position:absolute;top:10px;right:10px;display:none;gap:6px}
+  .tile:hover .tools{display:flex}
+  .tile .tools span{width:24px;height:24px;border-radius:7px;background:#00000055;display:flex;
+    align-items:center;justify-content:center;font-size:13px;color:var(--muted)}
+  .tile .tools span:hover{background:#000;color:#fff}
+
+  .hero .tile{min-height:150px;padding:24px;justify-content:space-between}
+  .hero .tile .ico{width:54px;height:54px;font-size:28px;border-radius:14px}
+  .hero .tile .ttl{font-size:22px}
+  .hero .tile .badge{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+
+  /* modal */
+  .ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:50}
+  .ov.show{display:flex}
+  .modal{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:26px;width:420px;max-width:92vw}
+  .modal h3{font-size:18px;margin-bottom:18px}
+  .modal label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px}
+  .modal input,.modal select{width:100%;background:var(--card);border:1px solid var(--line);color:var(--txt);
+    padding:11px 13px;border-radius:10px;font-size:14px;outline:none}
+  .modal input:focus{border-color:var(--accent)}
+  .swatches{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .swatches i{width:28px;height:28px;border-radius:8px;cursor:pointer;border:2px solid transparent}
+  .swatches i.sel{border-color:#fff}
+  .mrow{display:flex;gap:10px;margin-top:22px}
+  .btn{flex:1;padding:11px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .btn.danger{background:transparent;border:1px solid #5a2a2a;color:#e07a7a;flex:0 0 auto;padding:11px 16px}
+  .hint{color:var(--muted);font-size:12px;margin-top:18px;text-align:center}
+  .foot{text-align:center;color:#55556a;font-size:12px;margin-top:40px}
+  .foot a{color:#55556a}
+  @media(max-width:640px){.grid.hero{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="hello">
+      <h1 id="greet">Привет, Anton</h1>
+      <p id="dateline"></p>
+    </div>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <div class="search">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="q" placeholder="Поиск по доскам, инструментам, папкам…" autocomplete="off">
+  </div>
+
+  <div id="board"></div>
+
+  <div class="foot">
+    Командный центр · данные хранятся локально в этом браузере ·
+    <a href="#" onclick="exportData();return false;">экспорт</a> /
+    <a href="#" onclick="document.getElementById('imp').click();return false;">импорт</a> /
+    <a href="#" onclick="resetData();return false;">сброс</a>
+    <input type="file" id="imp" accept=".json" style="display:none" onchange="importData(this)">
+  </div>
+</div>
+
+<!-- modal -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <h3 id="mTitle">Новая плитка</h3>
+    <label>Название</label>
+    <input id="mName" placeholder="Master Desk">
+    <label>Ссылка (URL)</label>
+    <input id="mUrl" placeholder="https://docs.google.com/...">
+    <label>Иконка (эмодзи или 1–2 буквы)</label>
+    <input id="mIcon" placeholder="📋 или MD" maxlength="2">
+    <label>Подпись (необязательно)</label>
+    <input id="mSub" placeholder="главная таблица">
+    <label>Цвет</label>
+    <div class="swatches" id="sw"></div>
+    <div class="mrow">
+      <button class="btn danger" id="mDel" onclick="delTile()">Удалить</button>
+      <button class="btn ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn primary" onclick="saveTile()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS=["#7c6cff","#e0b341","#4caf7d","#e0556a","#4a9be0","#e08a3c","#9a9ab0","#b56ce0"];
+const LS="anton_cmd_center_v1";
+
+const SEED={
+ sections:[
+  {id:"hero",title:"Главные доски",hero:true,tiles:[
+    {id:t(),name:"MASTER DESK",icon:"📋",sub:"главный пульт · все клиенты",url:"",color:"#e0b341"},
+    {id:t(),name:"EVELINE 2026",icon:"🎬",sub:"ниша · продакшн",url:"",color:"#7c6cff"},
+  ]},
+  {id:"boards",title:"Доски и таблицы",tiles:[
+    {id:t(),name:"YAMEN",icon:"Y",sub:"клиент",url:"",color:"#4caf7d"},
+    {id:t(),name:"MISHA",icon:"M",sub:"клиент",url:"",color:"#4a9be0"},
+  ]},
+  {id:"tools",title:"Мои инструменты",tiles:[
+    {id:t(),name:"Yamen прескурант",icon:"💰",sub:"расчёт цен",url:"",color:"#4caf7d"},
+    {id:t(),name:"Deal pipeline",icon:"📊",sub:"team-availability CRM",url:"",color:"#7c6cff"},
+  ]},
+  {id:"folders",title:"Папки и облака",tiles:[
+    {id:t(),name:"Google Drive",icon:"📁",sub:"корневые папки",url:"https://drive.google.com",color:"#4a9be0"},
+    {id:t(),name:"pCloud",icon:"☁️",sub:"",url:"https://my.pcloud.com",color:"#4a9be0"},
+    {id:t(),name:"Sync.com",icon:"🔄",sub:"",url:"https://www.sync.com",color:"#4caf7d"},
+    {id:t(),name:"MultCloud",icon:"🔗",sub:"",url:"https://www.multcloud.com",color:"#e08a3c"},
+  ]},
+  {id:"services",title:"Сервисы",tiles:[
+    {id:t(),name:"Gmail",icon:"✉️",sub:"",url:"https://mail.google.com",color:"#e0556a"},
+    {id:t(),name:"Calendar",icon:"📅",sub:"",url:"https://calendar.google.com",color:"#4a9be0"},
+    {id:t(),name:"Vimeo",icon:"▶️",sub:"",url:"https://vimeo.com",color:"#4a9be0"},
+    {id:t(),name:"Artlist",icon:"🎵",sub:"музыка",url:"https://artlist.io",color:"#e0b341"},
+    {id:t(),name:"Instagram",icon:"📸",sub:"",url:"https://instagram.com",color:"#e0556a"},
+    {id:t(),name:"ChatGPT",icon:"🤖",sub:"",url:"https://chatgpt.com",color:"#4caf7d"},
+    {id:t(),name:"Canva",icon:"🎨",sub:"",url:"https://canva.com",color:"#7c6cff"},
+  ]},
+ ]
+};
+function t(){return Math.random().toString(36).slice(2,9)}
+
+let data=load();
+let editing=null; // {sec, tile|null}
+let selColor=COLORS[0];
+
+function load(){
+  try{const r=localStorage.getItem(LS);if(r)return JSON.parse(r);}catch(e){}
+  return JSON.parse(JSON.stringify(SEED));
+}
+function save(){localStorage.setItem(LS,JSON.stringify(data));}
+
+function render(filter=""){
+  const f=filter.trim().toLowerCase();
+  const board=document.getElementById("board");
+  board.innerHTML="";
+  data.sections.forEach(sec=>{
+    const tiles=sec.tiles.filter(x=>!f || (x.name+" "+(x.sub||"")).toLowerCase().includes(f));
+    if(f && tiles.length===0) return;
+    const s=document.createElement("div");s.className="section";
+    s.innerHTML=`<h2>${sec.title}<span class="add" data-sec="${sec.id}">+ добавить</span></h2>`;
+    const g=document.createElement("div");
+    g.className="grid "+(sec.hero?"hero":"normal");
+    tiles.forEach(tl=>g.appendChild(tileEl(sec,tl)));
+    s.appendChild(g);board.appendChild(s);
+  });
+  document.querySelectorAll(".add").forEach(a=>a.onclick=()=>openModal(a.dataset.sec,null));
+}
+
+function tileEl(sec,tl){
+  const a=document.createElement(tl.url?"a":"div");
+  a.className="tile";
+  if(tl.url){a.href=tl.url;a.target="_blank";a.rel="noopener";}
+  const heroBadge=sec.hero?`<span class="badge">открыть</span>`:`<div class="sub">${tl.sub||""}</div>`;
+  a.innerHTML=`
+    <div class="tools">
+      <span title="изменить" data-act="edit">✎</span>
+    </div>
+    <div class="ico" style="background:${tl.color}22;color:${tl.color}">${tl.icon||tl.name[0]}</div>
+    <div>
+      <div class="ttl">${tl.name}</div>
+      ${sec.hero?`<div class="sub">${tl.sub||""}</div>`:""}
+    </div>
+    ${sec.hero?'<span class="badge">'+(tl.url?'открыть ↗':'нажми ✎ чтобы добавить ссылку')+'</span>':''}
+  `;
+  a.querySelector('[data-act=edit]').addEventListener("click",e=>{
+    e.preventDefault();e.stopPropagation();openModal(sec.id,tl.id);
+  });
+  if(!tl.url){a.addEventListener("click",e=>{e.preventDefault();openModal(sec.id,tl.id);});}
+  return a;
+}
+
+function openModal(secId,tileId){
+  const sec=data.sections.find(s=>s.id===secId);
+  const tile=tileId?sec.tiles.find(x=>x.id===tileId):null;
+  editing={secId,tileId};
+  document.getElementById("mTitle").textContent=tile?"Изменить плитку":"Новая плитка";
+  document.getElementById("mName").value=tile?tile.name:"";
+  document.getElementById("mUrl").value=tile?tile.url:"";
+  document.getElementById("mIcon").value=tile?tile.icon:"";
+  document.getElementById("mSub").value=tile?(tile.sub||""):"";
+  selColor=tile?tile.color:COLORS[0];
+  document.getElementById("mDel").style.display=tile?"block":"none";
+  const sw=document.getElementById("sw");sw.innerHTML="";
+  COLORS.forEach(c=>{
+    const i=document.createElement("i");i.style.background=c;
+    if(c===selColor)i.className="sel";
+    i.onclick=()=>{selColor=c;[...sw.children].forEach(x=>x.className="");i.className="sel";};
+    sw.appendChild(i);
+  });
+  document.getElementById("ov").classList.add("show");
+  document.getElementById("mName").focus();
+}
+function closeModal(){document.getElementById("ov").classList.remove("show");editing=null;}
+
+function saveTile(){
+  const sec=data.sections.find(s=>s.id===editing.secId);
+  const obj={
+    name:document.getElementById("mName").value.trim()||"Без названия",
+    url:document.getElementById("mUrl").value.trim(),
+    icon:document.getElementById("mIcon").value.trim(),
+    sub:document.getElementById("mSub").value.trim(),
+    color:selColor
+  };
+  if(editing.tileId){Object.assign(sec.tiles.find(x=>x.id===editing.tileId),obj);}
+  else{obj.id=t();sec.tiles.push(obj);}
+  save();render(document.getElementById("q").value);closeModal();
+}
+function delTile(){
+  const sec=data.sections.find(s=>s.id===editing.secId);
+  sec.tiles=sec.tiles.filter(x=>x.id!==editing.tileId);
+  save();render(document.getElementById("q").value);closeModal();
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="command-center-backup.json";a.click();
+}
+function importData(inp){
+  const file=inp.files[0];if(!file)return;
+  const r=new FileReader();r.onload=e=>{try{data=JSON.parse(e.target.result);save();render();}catch(x){alert("Не удалось прочитать файл");}};
+  r.readAsText(file);
+}
+function resetData(){if(confirm("Сбросить к стандартному набору? Твои изменения удалятся.")){data=JSON.parse(JSON.stringify(SEED));save();render();}}
+
+// clock + greeting
+function tick(){
+  const d=new Date();
+  document.getElementById("clock").textContent=d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
+  const h=d.getHours();
+  const g=h<5?"Доброй ночи":h<12?"Доброе утро":h<18?"Добрый день":"Добрый вечер";
+  document.getElementById("greet").textContent=g+", Anton";
+  document.getElementById("dateline").textContent=d.toLocaleDateString("ru-RU",{weekday:"long",day:"numeric",month:"long"});
+}
+setInterval(tick,1000*30);tick();
+
+document.getElementById("q").addEventListener("input",e=>render(e.target.value));
+document.getElementById("ov").addEventListener("click",e=>{if(e.target.id==="ov")closeModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+render();
+</script>
+</body>
+</html>
